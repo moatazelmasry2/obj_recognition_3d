@@ -1,0 +1,11 @@
+<!-- PCL Features library component -->
+<library path="lib/libmynodelets">
+  <class name="my3dlaser/PointCloudAnalyser" type="myanalyeserns::PointCloudAnalyser" base_class_type="nodelet::Nodelet">
+    <description>
+      custom point cloud analyser class
+    </description>
+  </class>
+
+  
+
+</library>

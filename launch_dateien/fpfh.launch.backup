@@ -1,0 +1,53 @@
+<launch>
+	<master auto="start"/>
+	
+	<rosparam file="$(find nimbro_launch)/config/global_parameters_dyna2.yaml" command="load" />
+	
+	<!-- Pointcloud expected on /tilt_scan_pointcloud -->
+	<!-- tf expected on /tf -->
+	
+	<node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+	
+	<!-- PointCloud/PointCloud2 converter -->
+	<node pkg="point_cloud_converter" type="point_cloud_converter" name="tilt_scan_point_cloud_converter" output="screen">
+		<remap from="/points_in" to="/tilt_scan_pointcloud" />
+		<remap from="/points2_out" to="/tilt_scan/pointcloud2" />
+	</node>
+	
+	<!-- Downsample to voxel grid -->
+	<node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
+		<remap from="/voxel_grid/input" to="/tilt_scan/pointcloud2" />
+		<remap from="/voxel_grid/output" to="/tilt_scan/voxel_grid" />
+<rosparam>
+leaf_size: 0.03
+</rosparam>
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="normal_estimation" args="load pcl/NormalEstimation pcl_manager" output="screen">
+		<remap from="/normal_estimation/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/normal_estimation/output" to="/tilt_scan/normals" />
+		
+		<rosparam>
+# -[ Mandatory parameters
+k_search: 6
+radius_search: 0
+# Set the spatial locator. Possible values are: 0 (ANN), 1 (FLANN), 2 (organized)
+spatial_locator: 0
+</rosparam>
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="fpfh_estimation" args="load pcl/FPFHEstimation pcl_manager" output="screen">
+		<remap from="/fpfh_estimation/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/fpfh_estimation/normals" to="/tilt_scan/normals" />
+		
+		<rosparam>
+# -[ Mandatory parameters
+# k_search: 6
+radius_search: 0.08
+# Set the spatial locator. Possible values are: 0 (ANN), 1 (FLANN), 2 (organized)
+spatial_locator: 0
+</rosparam>
+	
+	</node>
+	
+</launch>

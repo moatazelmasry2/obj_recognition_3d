@@ -1,0 +1,42 @@
+<launch>
+	<master auto="start"/>
+
+	<rosparam file="$(find nimbro_launch)/config/global_parameters_dyna2.yaml" command="load" />
+
+
+	<node launch-prefix="xterm -e" pkg="nimbro_kinematic_control" type="dynamaid_control_node" name="dynamaid_control" respawn="false">
+		<rosparam file="$(find nimbro_launch)/config/dynamaidcontrol_only_leftarm.yaml" command="load" />
+		<param name="use_simulator" value="false" />
+		<param name="enable_laser_tilt" value="true" />
+
+		<param name="tilt_laser_sweep_up_speed" value="20" />
+		<param name="tilt_laser_sweep_up_target" value="0.2" />
+		<param name="tilt_laser_sweep_down_target" value="0.85" />
+
+	</node>
+
+	<node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node" respawn="false">
+		<remap from="scan" to="torso_pitch_laser" />
+		<param name="frameid" value="torso_pitch_laser_link" />
+		<param name="cluster" value="1" />
+		<param name="intensity" value="false" />
+		<param name="min_ang" value="-0.7" />
+		<param name="max_ang" value="0.7" />
+<!--		<param name="min_ang" value="-2.2689" />
+		<param name="max_ang" value="2.2689" />-->
+<!--		<param name="intensity" value="true" />
+		<param name="min_ang" value="-1.047" />
+		<param name="max_ang" value="1.047" />-->
+ 		<param name="port" value="/dev/hokuyo_TiltLaser" />
+	</node>
+
+
+	<node pkg="laser_assembler" type="laser_scan_assembler" name="laser_scan_assembler_node" respawn="false">
+		<remap from="scan" to="torso_pitch_laser" />
+		<param name="fixed_frame" type="string" value="base_link" />
+		<param name="max_scans" type="int" value="1000" />
+	</node>
+
+	<node pkg="nimbro_cloud_processing" type="tilt_scan_assembler.py" name="tilt_scan_assembler_node" respawn="false">
+	</node>
+</launch>

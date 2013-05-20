@@ -1,0 +1,36 @@
+<package>
+  <description brief="my3dlaser">
+
+     my3dlaser
+
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/my3dlaser</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="pluginlib"/>
+  <depend package="pcl_ros"/>
+  <depend package="pcl_visualization"/>
+  <depend package="rosout"/>
+  <depend package="rosmaster"/>
+  <depend package="message_filters"/>
+  <depend package="cminpack"/>
+  
+  <depend package="topic_tools"/>
+  <depend package="rosbag"/>
+  <depend package="dynamic_reconfigure"/>
+  <depend package="rosbagmigration"/>
+  <depend package="geometry_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="nodelet" />
+
+	<export>
+    	<nodelet plugin="${prefix}/analyser_nodelets.xml" />
+  	</export>
+
+</package>
+
+

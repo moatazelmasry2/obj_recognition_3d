@@ -1,0 +1,73 @@
+<launch>
+	<master auto="start"/>
+	
+	<rosparam file="$(find nimbro_launch)/config/global_parameters_dyna2.yaml" command="load" />
+	
+	<!-- Pointcloud expected on /tilt_scan_pointcloud -->
+	<!-- tf expected on /tf -->
+	
+	<node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+	
+	<!-- PointCloud/PointCloud2 converter -->
+	<node pkg="point_cloud_converter" type="point_cloud_converter" name="tilt_scan_point_cloud_converter" output="screen">
+		<remap from="/points_in" to="/tilt_scan_pointcloud" />
+		<remap from="/points2_out" to="/tilt_scan/pointcloud2" />
+	</node>
+	
+	<!-- Downsample to voxel grid -->
+	<node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
+		<remap from="/voxel_grid/input" to="/tilt_scan/pointcloud2" />
+		<remap from="/voxel_grid/output" to="/tilt_scan/voxel_grid" />
+<rosparam>
+leaf_size: 0.03
+</rosparam>
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="normal_estimation" args="load pcl/NormalEstimation pcl_manager" output="screen">
+		<remap from="/normal_estimation/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/normal_estimation/output" to="/tilt_scan/normals" />
+		
+		<rosparam>
+# -[ Mandatory parameters
+k_search: 0
+radius_search: 0.08
+# Set the spatial locator. Possible values are: 0 (ANN), 1 (FLANN), 2 (organized)
+spatial_locator: 0
+</rosparam>
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="shelfdetection" args="load nimbro_objectperception/ShelfDetection pcl_manager" output="screen">
+		<remap from="/shelfdetection/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/shelfdetection/normals" to="/tilt_scan/normals" />
+		<remap from="/shelfdetection/inliers" to="/tilt_scan/inliers" />
+		<remap from="/shelfdetection/plane_inliers" to="/tilt_scan/plane_inliers" />
+		<remap from="/shelfdetection/object_inliers" to="/tilt_scan/object_inliers" />
+		
+		<rosparam>
+max_surface_normal_angle: 18.0
+max_plane_normal_angle: 6.0
+cluster_tolerance: 0.06
+cluster_eps_angle: 37.0
+bounding_box_margin: -0.03
+use_requests: false
+</rosparam>
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="extract_indices" args="load pcl/ExtractIndices pcl_manager" output="screen">
+		<remap from="/extract_indices/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/extract_indices/indices" to="/tilt_scan/inliers" />
+		<remap from="/extract_indices/output" to="/tilt_scan/shelf_cloud" />
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="extract_plane_indices" args="load pcl/ExtractIndices pcl_manager" output="screen">
+		<remap from="/extract_plane_indices/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/extract_plane_indices/indices" to="/tilt_scan/plane_inliers" />
+		<remap from="/extract_plane_indices/output" to="/tilt_scan/plane_cloud" />
+	</node>
+	
+	<node pkg="nodelet" type="nodelet" name="extract_object_indices" args="load pcl/ExtractIndices pcl_manager" output="screen">
+		<remap from="/extract_object_indices/input" to="/tilt_scan/voxel_grid" />
+		<remap from="/extract_object_indices/indices" to="/tilt_scan/object_inliers" />
+		<remap from="/extract_object_indices/output" to="/tilt_scan/object_cloud" />
+	</node>
+</launch>
